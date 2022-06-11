@@ -1,12 +1,13 @@
 package ro.fasttrackit.curs5homework;
 
 import org.springframework.web.bind.annotation.*;
+import ro.fasttrackit.curs5homework.exceptions.CountryNotFoundException;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/")
+@RequestMapping("countries")
 public class CountryController {
     private final CountryService service;
 
@@ -14,45 +15,37 @@ public class CountryController {
         this.service = countryService;
     }
 
-    @GetMapping(value = "countries")
+    @GetMapping
     List<Country> getAllCountriesOrGetAllCountriesByNeighbour(@RequestParam(required = false) String includeNeighbour,
                                                               @RequestParam(required = false) String excludeNeighbour){
         return service.findAllCountriesOrGetAllCountriesByNeighbour(includeNeighbour, excludeNeighbour);
     }
 
-    @GetMapping("countries/names")
+    @GetMapping("names")
     List<String> getAllCountryName() {
         return service.getAllNames();
     }
 
-    @GetMapping("countries/{countryId}/capital")
+    @GetMapping("{countryId}/capital")
     String getCapitalOfACountryById(@PathVariable Long countryId) {
-        return service.findCapitalById(countryId);
+        return service.findCapitalByCountryId(countryId)
+                .orElseThrow(() -> new CountryNotFoundException(countryId));
     }
 
-    @GetMapping("countries/{countryId}/population")
+    @GetMapping("{countryId}/population")
     Long getPopulationOfACountry(@PathVariable Long countryId) {
-        return service.getPopulationById(countryId);
+        return service.getPopulationByCountryId(countryId)
+                .orElseThrow(() -> new CountryNotFoundException(countryId));
     }
 
-    @GetMapping(value = "continents/{continentName}/countries")
-    List<Country> getCountriesInContinent(@PathVariable String continentName,
-                                          @RequestParam(required = false) Long minPopulation) {
-        return service.getCountriesInContinentWithMinPopulation(continentName, minPopulation);
-    }
-
-    @GetMapping("countries/{countryId}/neighbours")
+    @GetMapping("{countryId}/neighbours")
     List<String> getCountryNeighbours(@PathVariable Long countryId) {
-        return service.getNeighboursByCountryId(countryId);
+        return service.getNeighboursByCountryId(countryId)
+                .orElseThrow(() -> new CountryNotFoundException(countryId));
     }
 
-    @GetMapping("countries/population")
+    @GetMapping("population")
     Map<String, Long> getMapFromCountryToPopulation(){
         return service.getMapFromCountryNameToPopulation();
-    }
-
-    @GetMapping("continents/countries")
-    Map<String, List<Country>> getMapFromContinentToCountries(){
-        return service.getMapFromContinentToListOfCountries();
     }
 }
